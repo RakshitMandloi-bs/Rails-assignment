@@ -1,0 +1,54 @@
+<h1>My Files Dashboard</h1>
+
+<div class="upload-area">
+  <%= form_with url: upload_path, multipart: true, local: true do |form| %>
+    <h3>Upload a New File</h3>
+    <div class="form-group">
+      <%= form.file_field :file, class: "form-control", required: true %>
+    </div>
+    <div class="form-group">
+      <%= form.submit "Upload File", class: "btn btn-success" %>
+    </div>
+  <% end %>
+</div>
+
+<% if @uploaded_files.any? %>
+  <div class="grid">
+    <% @uploaded_files.each do |file| %>
+      <div class="file-card">
+        <div class="file-name">
+          <%= CGI.unescapeHTML(file.filename) %>
+          <% if file.public? %>
+            <span class="shared-badge">SHARED</span>
+          <% end %>
+        </div>
+        <div class="file-date">
+          Uploaded: <%= file.uploaded_at.strftime("%d %B %Y") %>
+        </div>
+        
+        <div class="file-actions">
+          <%= link_to "Download", "/files/#{file.id}/download", class: "btn btn-primary" %>
+          
+          <% unless file.public? %>
+            <%= link_to "Share", "/files/#{file.id}/share", method: :patch, class: "btn btn-success" %>
+            <%= link_to "Delete", "/files/#{file.id}", method: :delete, 
+                        confirm: "Are you sure you want to delete this file?", 
+                        class: "btn btn-danger" %>
+          <% else %>
+            <%= link_to "Stop Sharing", "/files/#{file.id}/share", method: :patch, class: "btn btn-warning" %>
+            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
+              Public Share URL: <br>
+              <input type="text" value="<%= request.base_url %>/shared/<%= file.share_token %>" 
+                     readonly class="form-control" style="font-size: 0.7rem; margin-top: 0.2rem;">
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card text-center">
+    <h3>No files uploaded yet</h3>
+    <p>Upload your first file using the form above!</p>
+  </div>
+<% end %>
